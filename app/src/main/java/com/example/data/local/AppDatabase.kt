@@ -38,16 +38,20 @@ abstract class AppDatabase : RoomDatabase() {
                             AppDatabase::class.java,
                             "umkm_pos.db"
                         )
+                            .fallbackToDestructiveMigration()
                             .fallbackToDestructiveMigrationOnDowngrade()
                             .addCallback(DatabaseCallback(scope))
                             .build()
                     } catch (e: Throwable) {
                         try { context.deleteDatabase("umkm_pos.db") } catch (_: Throwable) {}
+                        try { context.deleteDatabase("umkm_pos.db-shm") } catch (_: Throwable) {}
+                        try { context.deleteDatabase("umkm_pos.db-wal") } catch (_: Throwable) {}
                         Room.databaseBuilder(
                             context.applicationContext,
                             AppDatabase::class.java,
                             "umkm_pos.db"
                         )
+                            .fallbackToDestructiveMigration()
                             .fallbackToDestructiveMigrationOnDowngrade()
                             .addCallback(DatabaseCallback(scope))
                             .build()

@@ -47,7 +47,7 @@ fun PengaturanScreen(vm: UmkmViewModel, lastSync: String) {
                     Text("Google Drive (milik user)", fontWeight = FontWeight.Bold)
                     Text("Login pakai akun Google Anda. Backup otomatis ke Drive folder aplikasi (hidden, tidak terlihat di My Drive). HP baru login akun sama → data pulih otomatis.", fontSize = 12.sp)
                     val webId = try { BuildConfig.WEB_CLIENT_ID } catch (_: Exception) { "xxx.apps.googleusercontent.com" }
-                    val isLoggedIn = remember { GoogleAuthManager.currentUserEmail() }
+                    val isLoggedIn = remember { try { GoogleAuthManager.currentUserEmail() } catch (_: Throwable) { null } }
                     if (isLoggedIn != null) {
                         Text("Login sebagai: $isLoggedIn", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                     }

@@ -12,7 +12,13 @@ import kotlinx.coroutines.launch
 import java.util.Calendar
 
 class UmkmViewModel(app: Application) : AndroidViewModel(app) {
-    private val dao = AppDatabase.getDatabase(app, viewModelScope).umkmDao()
+    private val dao = try { AppDatabase.getDatabase(app, viewModelScope).umkmDao() } catch (e: Throwable) {
+        android.util.Log.e("UmkmViewModel", "DB init failed, delete & retry", e)
+        try { app.deleteDatabase("umkm_pos.db") } catch (_: Throwable) {}
+        try { app.deleteDatabase("umkm_pos.db-shm") } catch (_: Throwable) {}
+        try { app.deleteDatabase("umkm_pos.db-wal") } catch (_: Throwable) {}
+        AppDatabase.getDatabase(app, viewModelScope).umkmDao()
+    }
     private val repo = UmkmRepository(dao)
 
     val products: StateFlow<List<ProductEntity>> = repo.products.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())

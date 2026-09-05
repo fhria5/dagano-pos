@@ -35,5 +35,5 @@ object GoogleAuthManager {
         FirebaseAuth.getInstance().signOut()
     }
 
-    fun currentUserEmail(): String? = FirebaseAuth.getInstance().currentUser?.email
+    fun currentUserEmail(): String? = try { FirebaseAuth.getInstance().currentUser?.email } catch (_: Throwable) { null }
 }
