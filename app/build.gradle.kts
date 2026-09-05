@@ -10,15 +10,15 @@ plugins {
 }
 
 android {
-  namespace = "com.umkm.kasir"
+  namespace = "com.larisoo"
   compileSdk { version = release(36) { minorApiLevel = 1 } }
 
   defaultConfig {
-    applicationId = "com.umkm.kasir.pos"
+    applicationId = "com.larisoo.pos"
     minSdk = 24
     targetSdk = 36
     versionCode = 1
-    versionName = "1.0-umkm"
+    versionName = "1.0-larisoo"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }

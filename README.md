@@ -1,6 +1,7 @@
-# UMKM Kasir — Offline-First Kasir & Stok untuk UMKM
-Android native Kotlin + Jetpack Compose, Room, Drive App Data Folder (milik user), minSdk 24.
-Adaptif HP & Tablet, Portrait & Landscape (NavigationRail/BottomBar, Adaptive Grid).
+# Larisoo — POS Laris untuk Warung & UMKM
+Android Kotlin + Jetpack Compose, Room offline-first 100%, Drive App Data Folder (milik user), minSdk 24.
+Laris + double o — warung-friendly, 7 huruf, janji laris manis.
 
-Fitur P0: Kasir 3-tap (total/kembalian, riwayat harian), Stok (CRUD produk harga beli/jual/minStock), Opname, Laporan grafik + best seller + PDF/CSV + Drive.
-Offline 100%, sync berkala ke Drive user (App Data Folder), indikator Terakhir sync.
+Fitur P0: Kasir 3-tap, Stok CRUD + alert menipis, Opname, Laporan grafik + best seller + PDF/CSV.
+Adaptif HP & tablet, portrait + landscape (Rail/Bar, Adaptive Grid).
+Alias defensif: Lariso (6 huruf, redirect typo).

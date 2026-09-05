@@ -1,6 +1,6 @@
 {
-  "name": "UMKM Kasir",
-  "description": "Aplikasi Kasir POS Android Offline-First komersial untuk usaha F&B (Cafe, Restoran, Coffee Shop, Bakery) dengan Manajemen Meja, KOT Dapur, Resep BOM Stok, Kasir Shift, dan Lisensi Device.",
+  "name": "Larisoo",
+  "description": "Larisoo - POS Laris untuk Warung & UMKM. Offline-first kasir & stok, sync Drive milik user, adaptif HP & tablet.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
