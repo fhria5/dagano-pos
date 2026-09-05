@@ -110,12 +110,17 @@ dependencies {
   // Uncomment to use Firestore:
   // implementation(libs.firebase.firestore)
 
-  // UMKM: Google Sign-In + Drive App Data Folder (milik user)
+  // UMKM: Google Sign-In + Drive App Data Folder (milik user) — gratis, tanpa server dev
   implementation(libs.firebase.auth)
   implementation(libs.androidx.credentials)
   implementation(libs.androidx.credentials.play.services)
   implementation(libs.googleid)
   implementation(libs.work.runtime.ktx)
+  implementation(libs.play.services.auth)
+  implementation(libs.google.api.client)
+  implementation(libs.google.api.client.android)
+  implementation(libs.google.api.services.drive)
+  implementation(libs.google.api.services.sheets)
   implementation(libs.firebase.appcheck.recaptcha)
   implementation(libs.firebase.appcheck.debug)
   implementation(libs.kotlinx.coroutines.android)

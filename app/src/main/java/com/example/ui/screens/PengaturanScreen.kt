@@ -1,6 +1,5 @@
 package com.example.ui.screens
 
-import androidx.compose.foundation.layout.*
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -12,6 +11,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.dagano.BuildConfig
+import com.example.auth.GoogleAuthManager
 import com.example.ui.UmkmViewModel
 import com.example.util.ExportHelper
 import com.example.worker.DriveSyncWorker
@@ -45,9 +46,25 @@ fun PengaturanScreen(vm: UmkmViewModel, lastSync: String) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("Google Drive (milik user)", fontWeight = FontWeight.Bold)
                     Text("Login pakai akun Google Anda. Backup otomatis ke Drive folder aplikasi (hidden, tidak terlihat di My Drive). HP baru login akun sama → data pulih otomatis.", fontSize = 12.sp)
-                    Button(onClick = { showDriveInfo = true }, modifier = Modifier.fillMaxWidth()) {
-                        Icon(Icons.Default.Login, null); Spacer(Modifier.width(8.dp)); Text("Login Google (Drive milik user)")
+                    val webId = try { BuildConfig.WEB_CLIENT_ID } catch (_: Exception) { "xxx.apps.googleusercontent.com" }
+                    val isLoggedIn = remember { GoogleAuthManager.currentUserEmail() }
+                    if (isLoggedIn != null) {
+                        Text("Login sebagai: $isLoggedIn", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                     }
+                    Button(onClick = {
+                        scope.launch {
+                            if (webId.startsWith("xxx")) {
+                                Toast.makeText(ctx, "Isi WEB_CLIENT_ID di .env dulu (google-services.json)", Toast.LENGTH_SHORT).show()
+                                showDriveInfo = true
+                            } else {
+                                val res = GoogleAuthManager.signIn(ctx, webId)
+                                Toast.makeText(ctx, if (res.isSuccess) "Login sukses: ${res.getOrNull()}" else "Login gagal: ${res.exceptionOrNull()?.message}", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }, modifier = Modifier.fillMaxWidth()) {
+                        Icon(Icons.Default.Login, null); Spacer(Modifier.width(8.dp)); Text(if (isLoggedIn != null) "Ganti Akun Google" else "Login Google (Drive milik user)")
+                    }
+                    TextButton(onClick = { showDriveInfo = true }, modifier = Modifier.fillMaxWidth()) { Text("Info Drive per HP") }
                     OutlinedButton(onClick = {
                         DriveSyncWorker.enqueue(ctx)
                         Toast.makeText(ctx, "Backup dijadwalkan (perlu internet)", Toast.LENGTH_SHORT).show()
