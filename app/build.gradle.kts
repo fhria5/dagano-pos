@@ -62,6 +62,12 @@ android {
     includeInApk = false
     includeInBundle = true
   }
+  packaging {
+    resources {
+      excludes += "META-INF/INDEX.LIST"
+      excludes += "META-INF/io.netty.versions.properties"
+    }
+  }
 }
 
 // Configure the Secrets Gradle Plugin to use .env and .env.example files
