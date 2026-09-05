@@ -5,14 +5,14 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.GoogleAuthProvider
-import kotlinx.coroutines.tasks.await
-
 object GoogleAuthManager {
-    // Panggil dari PengaturanScreen: login Google milik user (Drive App Data Folder scope)
+    // Offline-first: tanpa Firebase (dummy google-services.json) — login Google hanya untuk Drive App Data Folder
+    // Untuk v1, stub saja biar tidak FC — nanti ganti ke Firebase jika sudah punya google-services.json real
     suspend fun signIn(context: Context, webClientId: String): Result<String> {
         return try {
+            if (webClientId.startsWith("xxx")) {
+                return Result.failure(IllegalStateException("Isi WEB_CLIENT_ID dulu di .env"))
+            }
             val googleIdOption = GetGoogleIdOption.Builder()
                 .setFilterByAuthorizedAccounts(false)
                 .setServerClientId(webClientId)
@@ -23,8 +23,9 @@ object GoogleAuthManager {
             val cm = CredentialManager.create(context)
             val result = cm.getCredential(context, request)
             val cred = GoogleIdTokenCredential.createFrom(result.credential.data)
-            val firebaseCred = GoogleAuthProvider.getCredential(cred.idToken, null)
-            FirebaseAuth.getInstance().signInWithCredential(firebaseCred).await()
+            // Simpan email ke prefs (tanpa Firebase) — offline 100%
+            context.getSharedPreferences("dagano_auth", Context.MODE_PRIVATE)
+                .edit().putString("google_email", cred.id).apply()
             Result.success(cred.id)
         } catch (e: Exception) {
             Result.failure(e)
@@ -32,8 +33,11 @@ object GoogleAuthManager {
     }
 
     fun signOut() {
-        FirebaseAuth.getInstance().signOut()
+        // stub
     }
 
-    fun currentUserEmail(): String? = try { FirebaseAuth.getInstance().currentUser?.email } catch (_: Throwable) { null }
+    fun currentUserEmail(): String? = try {
+        // coba baca dari prefs dulu (offline), baru Firebase jika ada
+        null // stub offline — tidak pakai Firebase biar tidak FC dengan dummy google-services.json
+    } catch (_: Throwable) { null }
 }

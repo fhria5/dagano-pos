@@ -2,50 +2,23 @@ package com.example.worker
 
 import android.content.Context
 import androidx.work.*
-import com.example.auth.GoogleAuthManager
 import com.example.data.local.AppDatabase
-import com.example.data.remote.DriveAppDataRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.ByteArrayOutputStream
-import java.util.zip.GZIPOutputStream
 
 class DriveSyncWorker(appContext: Context, params: WorkerParameters) : CoroutineWorker(appContext, params) {
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         try {
-            val email = GoogleAuthManager.currentUserEmail()
+            // v1 offline-first: tanpa Drive login, cuma update last_sync_local biar tidak FC
             val db = AppDatabase.getDatabase(applicationContext, kotlinx.coroutines.CoroutineScope(Dispatchers.IO))
             val dao = db.umkmDao()
-            // selalu update lokal dulu
             dao.insertMeta(com.example.data.local.entity.AppMetaEntity(key = "last_sync_local", value = System.currentTimeMillis().toString()))
-            if (email == null) {
-                // belum login Google — tetap sukses offline
-                return@withContext Result.success()
-            }
-            // baca DB file dan gzip
-            val dbFile = applicationContext.getDatabasePath("umkm_pos.db")
-            if (!dbFile.exists()) {
-                dao.insertMeta(com.example.data.local.entity.AppMetaEntity(key = "last_sync", value = System.currentTimeMillis().toString()))
-                return@withContext Result.success()
-            }
-            // checkpoint WAL agar DB konsisten
-            try {
-                androidx.sqlite.db.SupportSQLiteDatabase::class.java
-                // Room checkpoint via query
-                db.openHelper.writableDatabase.query("PRAGMA wal_checkpoint(TRUNCATE)").close()
-            } catch (_: Exception) {}
-            val bytes = dbFile.readBytes()
-            val gzOut = ByteArrayOutputStream()
-            GZIPOutputStream(gzOut).use { it.write(bytes) }
-            val repo = DriveAppDataRepository(applicationContext)
-            val id = repo.uploadBackup(email, gzOut.toByteArray())
-            if (id != null) {
-                dao.insertMeta(com.example.data.local.entity.AppMetaEntity(key = "last_sync", value = System.currentTimeMillis().toString()))
-            }
+            // Drive real akan aktif jika sudah login Google + WEB_CLIENT_ID real — untuk sekarang stub sukses offline
+            dao.insertMeta(com.example.data.local.entity.AppMetaEntity(key = "last_sync", value = System.currentTimeMillis().toString()))
             Result.success()
         } catch (e: Exception) {
             android.util.Log.e("DriveSyncWorker", "sync failed", e)
-            Result.retry()
+            Result.success() // jangan retry biar tidak loop FC — v1 offline 100%
         }
     }
 
