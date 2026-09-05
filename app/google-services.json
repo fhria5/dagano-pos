@@ -1,0 +1,23 @@
+{
+  "project_info": {
+    "project_number": "1234567890",
+    "project_id": "bistromate-pos-dummy",
+    "storage_bucket": "bistromate-pos-dummy.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1234567890:android:dummy1234567890abcdef",
+        "android_client_info": {
+          "package_name": "com.umkm.kasir.pos"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [{ "current_key": "AIzaSyDummyKey1234567890DummyKey1234" }],
+      "services": {
+        "appinvite_service": { "other_platform_oauth_client": [] }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

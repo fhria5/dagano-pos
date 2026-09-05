@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="bistromate_security_pins_enc.xml"/>
+        <exclude domain="sharedpref" path="bistromate_security_pins.xml"/>
+        <exclude domain="sharedpref" path="bistromate_license_prefs.xml"/>
+        <exclude domain="database" path="bistromate_pos.db"/>
+        <exclude domain="database" path="bistromate_pos.db-wal"/>
+        <exclude domain="database" path="bistromate_pos.db-shm"/>
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="bistromate_security_pins_enc.xml"/>
+        <exclude domain="sharedpref" path="bistromate_security_pins.xml"/>
+        <exclude domain="sharedpref" path="bistromate_license_prefs.xml"/>
+        <exclude domain="database" path="bistromate_pos.db"/>
+    </device-transfer>
+</data-extraction-rules>

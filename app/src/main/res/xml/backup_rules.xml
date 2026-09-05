@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- Exclude sensitive POS data dari auto-backup (gratis hardening) -->
+    <exclude domain="sharedpref" path="bistromate_security_pins_enc.xml"/>
+    <exclude domain="sharedpref" path="bistromate_security_pins.xml"/>
+    <exclude domain="sharedpref" path="bistromate_license_prefs.xml"/>
+    <exclude domain="database" path="bistromate_pos.db"/>
+    <exclude domain="database" path="bistromate_pos.db-wal"/>
+    <exclude domain="database" path="bistromate_pos.db-shm"/>
+</full-backup-content>
