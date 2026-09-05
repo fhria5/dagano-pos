@@ -10,15 +10,15 @@ plugins {
 }
 
 android {
-  namespace = "com.larisoo"
+  namespace = "com.dagano"
   compileSdk { version = release(36) { minorApiLevel = 1 } }
 
   defaultConfig {
-    applicationId = "com.larisoo.pos"
+    applicationId = "com.dagano.pos"
     minSdk = 24
     targetSdk = 36
     versionCode = 1
-    versionName = "1.0-larisoo"
+    versionName = "1.0-dagano"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }

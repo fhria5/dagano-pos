@@ -22,6 +22,6 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "Larisoo"
+rootProject.name = "Dagano POS"
 
 include(":app")

@@ -1,6 +1,6 @@
 {
-  "name": "Larisoo",
-  "description": "Larisoo - POS Laris untuk Warung & UMKM. Offline-first kasir & stok, sync Drive milik user, adaptif HP & tablet.",
+  "name": "Dagano POS",
+  "description": "Dagano POS - Dagang Jalan Terus. Offline-first kasir & stok UMKM, sync Drive milik user, adaptif HP & tablet.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
