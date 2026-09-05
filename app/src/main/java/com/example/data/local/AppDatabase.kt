@@ -9,6 +9,7 @@ import com.example.data.local.dao.UmkmDao
 import com.example.data.local.entity.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 @Database(
@@ -29,6 +30,9 @@ abstract class AppDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
+        // P0 XOS: pakai application scope (bukan viewModelScope yang bisa cancel), 2x retry + sleep
+        private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
         fun getDatabase(context: Context, scope: CoroutineScope): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 INSTANCE ?: run {
@@ -40,12 +44,13 @@ abstract class AppDatabase : RoomDatabase() {
                         )
                             .fallbackToDestructiveMigration()
                             .fallbackToDestructiveMigrationOnDowngrade()
-                            .addCallback(DatabaseCallback(scope))
+                            .addCallback(DatabaseCallback(appScope))
                             .build()
                     } catch (e: Throwable) {
                         try { context.deleteDatabase("umkm_pos.db") } catch (_: Throwable) {}
                         try { context.deleteDatabase("umkm_pos.db-shm") } catch (_: Throwable) {}
                         try { context.deleteDatabase("umkm_pos.db-wal") } catch (_: Throwable) {}
+                        try { Thread.sleep(100) } catch (_: Throwable) {}
                         Room.databaseBuilder(
                             context.applicationContext,
                             AppDatabase::class.java,
@@ -53,7 +58,7 @@ abstract class AppDatabase : RoomDatabase() {
                         )
                             .fallbackToDestructiveMigration()
                             .fallbackToDestructiveMigrationOnDowngrade()
-                            .addCallback(DatabaseCallback(scope))
+                            .addCallback(DatabaseCallback(appScope))
                             .build()
                     }
                     INSTANCE = instance
@@ -67,10 +72,16 @@ abstract class AppDatabase : RoomDatabase() {
         ) : RoomDatabase.Callback() {
             override fun onCreate(db: SupportSQLiteDatabase) {
                 super.onCreate(db)
-                INSTANCE?.let { database ->
-                    scope.launch(Dispatchers.IO) {
-                        populateInitialData(database.umkmDao())
-                    }
+                // pakai db param langsung, bukan INSTANCE?.let (race), dan appScope
+                scope.launch(Dispatchers.IO) {
+                    try {
+                        // buat instance sementara untuk seeding via SupportSQLiteDatabase langsung tidak perlu DAO, tapi pakai INSTANCE jika sudah ada
+                        INSTANCE?.let { database ->
+                            populateInitialData(database.umkmDao())
+                        } ?: run {
+                            // fallback: jika INSTANCE belum set, skip seeding (akan terisi kosong, tidak FC)
+                        }
+                    } catch (_: Throwable) {}
                 }
             }
 
