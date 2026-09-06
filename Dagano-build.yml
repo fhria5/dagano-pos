@@ -1,0 +1,34 @@
+name: build
+on: [push, workflow_dispatch]
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inject secrets to .env & google-services.json (1 Web Client untuk semua sync)
+        run: |
+          if [ -n "${{ secrets.WEB_CLIENT_ID }}" ]; then echo "WEB_CLIENT_ID=${{ secrets.WEB_CLIENT_ID }}" > .env; echo "WEB_CLIENT_ID injected"; else echo "WEB_CLIENT_ID secret kosong — pakai .env.example (xxx)"; fi
+          if [ -n "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" ]; then echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > app/google-services.json; echo "google-services.json injected"; else echo "GOOGLE_SERVICES_JSON_BASE64 kosong — pakai dummy + WARN"; fi
+          cat .env 2>/dev/null | sed 's/=.*/=***/' || echo "no .env"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - run: chmod +x gradlew
+      - run: ./gradlew assembleDebug --stacktrace
+      - uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/main'
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          files: app/build/outputs/apk/debug/*.apk
+      # Mirror ke Google Drive Dagano (My Drive, Anyone with link) — gratis, untuk klien download via Drive
+      - name: Mirror APK to Drive Dagano
+        if: github.ref == 'refs/heads/main'
+        run: |
+          if [ -z "${{ secrets.RCLONE_CONFIG_BASE64 }}" ]; then echo "RCLONE_CONFIG_BASE64 kosong — skip Drive mirror (Releases tetap)"; exit 0; fi
+          curl https://rclone.org/install.sh | sudo bash
+          echo "${{ secrets.RCLONE_CONFIG_BASE64 }}" | base64 --decode > rclone.conf
+          rclone copy app/build/outputs/apk/debug/*.apk gdrive:Dagano-POS-Releases --config=rclone.conf --drive-chunk-size 32M -v
+          echo "Drive mirror done — link tetap: https://drive.google.com/drive/folders/<FOLDER_ID> atau https://github.com/fhria5/dagano-pos/releases/latest"
