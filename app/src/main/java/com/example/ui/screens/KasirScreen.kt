@@ -13,8 +13,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import com.example.data.local.entity.ProductEntity
 import com.example.ui.UmkmViewModel
+import com.example.util.BarcodeScanner
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -25,6 +32,12 @@ fun KasirScreen(vm: UmkmViewModel, isTablet: Boolean, isLandscape: Boolean, last
     val qty by vm.qty.collectAsState()
     val search by vm.search.collectAsState()
     val toast by vm.toast.collectAsState()
+
+    var showScanner by remember { mutableStateOf(false) }
+    val ctx = LocalContext.current
+    val permLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) showScanner = true
+    }
 
     val filtered = remember(products, search) {
         if (search.isBlank()) products else products.filter { it.name.contains(search, true) || it.sku.contains(search, true) || it.category.contains(search, true) }
@@ -53,14 +66,22 @@ fun KasirScreen(vm: UmkmViewModel, isTablet: Boolean, isLandscape: Boolean, last
         }
     ) { pad ->
         Column(Modifier.padding(pad).fillMaxSize().padding(12.dp)) {
-            OutlinedTextField(
-                value = search,
-                onValueChange = { vm.setSearch(it) },
-                placeholder = { Text("Cari produk/SKU/kategori") },
-                leadingIcon = { Icon(Icons.Default.Search, null) },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = search,
+                    onValueChange = { vm.setSearch(it) },
+                    placeholder = { Text("Cari/SKU/barcode") },
+                    leadingIcon = { Icon(Icons.Default.Search, null) },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true
+                )
+                FilledTonalButton(onClick = {
+                    val hasCam = ContextCompat.checkSelfPermission(ctx, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+                    if (hasCam) showScanner = true else permLauncher.launch(Manifest.permission.CAMERA)
+                }) {
+                    Icon(Icons.Default.QrCodeScanner, null); Spacer(Modifier.width(4.dp)); Text("Scan")
+                }
+            }
             Spacer(Modifier.height(8.dp))
             if (lowStock.isNotEmpty()) {
                 Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)) {
@@ -123,6 +144,24 @@ fun KasirScreen(vm: UmkmViewModel, isTablet: Boolean, isLandscape: Boolean, last
             toast?.let {
                 Snackbar { Text(it) }
                 LaunchedEffect(it) { kotlinx.coroutines.delay(2000); vm.clearToast() }
+            }
+            if (showScanner) {
+                AlertDialog(
+                    onDismissRequest = { showScanner = false },
+                    title = { Text("Scan Barcode") },
+                    text = {
+                        Box(Modifier.fillMaxWidth().height(300.dp)) {
+                            BarcodeScanner(onScanned = { code ->
+                                showScanner = false
+                                vm.setSearch(code)
+                                // auto-select jika SKU cocok
+                                val found = products.find { it.sku.equals(code, true) || it.name.contains(code, true) }
+                                if (found != null) vm.selectProduct(found)
+                            })
+                        }
+                    },
+                    confirmButton = { TextButton(onClick = { showScanner = false }) { Text("Tutup") } }
+                )
             }
         }
     }
