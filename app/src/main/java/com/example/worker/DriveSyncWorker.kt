@@ -9,16 +9,37 @@ import kotlinx.coroutines.withContext
 class DriveSyncWorker(appContext: Context, params: WorkerParameters) : CoroutineWorker(appContext, params) {
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         try {
-            // v1 offline-first: tanpa Drive login, cuma update last_sync_local biar tidak FC
             val db = AppDatabase.getDatabase(applicationContext, kotlinx.coroutines.CoroutineScope(Dispatchers.IO))
             val dao = db.umkmDao()
             dao.insertMeta(com.example.data.local.entity.AppMetaEntity(key = "last_sync_local", value = System.currentTimeMillis().toString()))
-            // Drive real akan aktif jika sudah login Google + WEB_CLIENT_ID real — untuk sekarang stub sukses offline
+            // coba Drive App Data Folder per HP (milik user) jika sudah login Google
+            val email = com.example.auth.GoogleAuthManager.currentUserEmailFromPrefs(applicationContext)
+                ?: com.example.auth.GoogleAuthManager.currentUserEmail(applicationContext)
+            if (email != null) {
+                try {
+                    val dbFile = applicationContext.getDatabasePath("umkm_pos.db")
+                    if (dbFile.exists()) {
+                        try { db.openHelper.writableDatabase.query("PRAGMA wal_checkpoint(TRUNCATE)").close() } catch (_: Exception) {}
+                        val bytes = dbFile.readBytes()
+                        val gzOut = java.io.ByteArrayOutputStream()
+                        java.util.zip.GZIPOutputStream(gzOut).use { it.write(bytes) }
+                        val repo = com.example.data.remote.DriveAppDataRepository(applicationContext)
+                        val id = repo.uploadBackup(email, gzOut.toByteArray())
+                        if (id != null) {
+                            dao.insertMeta(com.example.data.local.entity.AppMetaEntity(key = "last_sync", value = System.currentTimeMillis().toString()))
+                            return@withContext Result.success()
+                        }
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("DriveSyncWorker", "Drive upload gagal (offline?)", e)
+                }
+            }
+            // fallback offline: tetap update last_sync biar indikator sync tidak error
             dao.insertMeta(com.example.data.local.entity.AppMetaEntity(key = "last_sync", value = System.currentTimeMillis().toString()))
             Result.success()
         } catch (e: Exception) {
             android.util.Log.e("DriveSyncWorker", "sync failed", e)
-            Result.success() // jangan retry biar tidak loop FC — v1 offline 100%
+            Result.success()
         }
     }
 

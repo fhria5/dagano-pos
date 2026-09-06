@@ -36,8 +36,13 @@ object GoogleAuthManager {
         // stub
     }
 
-    fun currentUserEmail(): String? = try {
-        // coba baca dari prefs dulu (offline), baru Firebase jika ada
-        null // stub offline — tidak pakai Firebase biar tidak FC dengan dummy google-services.json
+    fun currentUserEmail(context: Context? = null): String? = try {
+        // baca dari prefs yang disimpan saat signIn (offline, per HP, milik user)
+        context?.getSharedPreferences("dagano_auth", Context.MODE_PRIVATE)?.getString("google_email", null)
+            ?: try { com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.email } catch (_: Throwable) { null }
+    } catch (_: Throwable) { null }
+
+    fun currentUserEmailFromPrefs(context: Context): String? = try {
+        context.getSharedPreferences("dagano_auth", Context.MODE_PRIVATE).getString("google_email", null)
     } catch (_: Throwable) { null }
 }
