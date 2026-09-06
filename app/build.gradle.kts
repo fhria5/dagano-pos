@@ -21,6 +21,8 @@ android {
     versionName = "1.0-dagano"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    // 1 Web Client untuk semua sync (gratis, per-HP isolasi) — hardcode biar CI tidak perlu secret WEB_CLIENT_ID
+    buildConfigField("String", "WEB_CLIENT_ID", "\"313264427132-a70tavj864ng5ka5h0tu998u210578pi.apps.googleusercontent.com\"")
   }
 
   signingConfigs {
